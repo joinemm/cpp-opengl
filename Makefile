@@ -1,27 +1,31 @@
-LDFLAGS=-lGL -lglfw -lGLEW
+CFLAGS = -Wall
+LDFLAGS = -lGL -lglfw -lGLEW
 
-NAME = out
-SRC = main.cpp texture.cpp shader.cpp
-OBJ = ${SRC:.cpp=.o}
+TARGET = bin/out
+SOURCES = $(wildcard src/*.cpp)
+OBJS = ${SOURCES:src/%.cpp=build/%.o}
+DEPS = $(OBJS:.o=.d)
 
-all: build run
-
-build: main.o texture.o shader.o link
-
-link: $(OBJ)
-		g++ $(LDFLAGS) -o $(NAME) $(OBJ)
-
-main.o: main.cpp
-		g++ $(LDFLAGS) -c main.cpp 
-
-texture.o: texture.cpp texture.h
-		g++ $(LDFLAGS) -c texture.cpp
-
-shader.o: shader.cpp shader.h
-		g++ $(LDFLAGS) -c shader.cpp
+all: $(TARGET) run
 
 clean:
-		rm -f $(OBJ) $(NAME)
+		rm -rf build $(TARGET)
 
-run:
-		./$(NAME)
+run: $(TARGET)
+		./$(TARGET)
+
+build:
+		mkdir -p $@
+	
+bin:
+		mkdir -p $@
+
+$(TARGET): $(OBJS) | bin
+		g++ $(CFLAGS) $(LDFLAGS) $^ -o $(TARGET)
+
+build/%.o: src/%.cpp | build
+		g++ $(CFLAGS) -MMD -MP -c $< -o $@
+
+.PHONY: all clean run
+
+-include $(DEPS)

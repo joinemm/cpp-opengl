@@ -107,8 +107,8 @@ int main(void) {
                         (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
-  Shader simpleShader("shader.vert.glsl", "shader.frag.glsl");
-  Texture texture("silo2_p2.png", GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+  Shader simpleShader("shaders/shader.vert.glsl", "shaders/shader.frag.glsl");
+  Texture texture("assets/silo2_p2.png", GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
