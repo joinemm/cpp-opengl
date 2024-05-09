@@ -3,9 +3,7 @@
 #include <iostream>
 
 #include "shader.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+#include "texture.h"
 
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
@@ -110,36 +108,11 @@ int main(void) {
   glEnableVertexAttribArray(2);
 
   Shader simpleShader("shader.vert.glsl", "shader.frag.glsl");
+  Texture texture("silo2_p2.png", GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-  // create a texture object
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-
-  // set texture wrap and filter parameters for this texture
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  // load texture from file
-  int width, height, nrChannels;
-  unsigned char *data =
-      stbi_load("silo2_p2.png", &width, &height, &nrChannels, 0);
-
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cerr << "Failed to load texture" << std::endl;
-  }
-
-  // free the image memory
-  stbi_image_free(data);
+  simpleShader.use();
 
   // main render loop
   while (!glfwWindowShouldClose(window)) {
@@ -147,9 +120,9 @@ int main(void) {
     // do rendering
     glClear(GL_COLOR_BUFFER_BIT);
 
-    simpleShader.use();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    texture.use();
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
