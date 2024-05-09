@@ -6,7 +6,7 @@ SOURCES = $(wildcard src/*.cpp)
 OBJS = ${SOURCES:src/%.cpp=build/%.o}
 DEPS = $(OBJS:.o=.d)
 
-all: $(TARGET) run
+all: $(TARGET)
 
 clean:
 		rm -rf build $(TARGET)
