@@ -1,6 +1,6 @@
 ## Development
 
-A nix development shell is included which installs GLFW and GLEW.
+A nix development shell is included which installs the required libraries into the environment.
 
 ```sh
 nix develop --impure -c $SHELL
@@ -8,10 +8,16 @@ nix develop --impure -c $SHELL
 
 ## Compile and run
 
-With the needed libraries installed in your system:
+With the dependencies installed and accessible to the compiler, 
+the included Makefile can be used for compiling and running the program.
 
 ```sh
-g++ main.cpp -lGL -lglfw -lGLEW
+make build
+make run
+```
 
-./a.out
+Or to compile and run the result immediately afterwards:
+
+```sh
+make
 ```
