@@ -27,7 +27,7 @@ Texture::Texture(const std::string &path, unsigned int filter,
   std::cout << path << " channels: " << nrChannels << std::endl;
 
   if (data) {
-    GLenum format;
+    GLenum format = 0;
     switch (nrChannels) {
     case 3:
       format = GL_RGB;
@@ -35,7 +35,11 @@ Texture::Texture(const std::string &path, unsigned int filter,
     case 4:
       format = GL_RGBA;
       break;
+    default:
+      std::cerr << "Texture has " << nrChannels
+                << " channels which is unhandled case!" << std::endl;
     }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);

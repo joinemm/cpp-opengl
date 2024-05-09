@@ -20,6 +20,7 @@
             glfw
             glew
             stb
+            glm
           ];
         };
       }
