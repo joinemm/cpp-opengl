@@ -9,22 +9,22 @@ DEPS = $(OBJS:.o=.d)
 all: $(TARGET)
 
 clean:
-		rm -rf build $(TARGET)
+	rm -rf build $(TARGET)
 
 run: $(TARGET)
-		./$(TARGET)
+	./$(TARGET)
 
 build:
-		mkdir -p $@
+	mkdir -p $@
 	
 bin:
-		mkdir -p $@
+	mkdir -p $@
 
 $(TARGET): $(OBJS) | bin
-		g++ $(CFLAGS) $(LDFLAGS) $^ -o $(TARGET)
+	g++ $(CFLAGS) $(LDFLAGS) $^ -o $(TARGET)
 
 build/%.o: src/%.cpp | build
-		g++ $(CFLAGS) -MMD -MP -c $< -o $@
+	g++ $(CFLAGS) -MMD -MP -c $< -o $@
 
 .PHONY: all clean run
 
