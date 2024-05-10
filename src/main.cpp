@@ -203,16 +203,20 @@ int main(void) {
   simpleShader.use();
 
   glm::mat4 view = glm::mat4(1.0f);
-  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -6.0f));
 
+  float vfov = 60.0f;
   glm::mat4 projection;
   projection =
-      glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+      glm::perspective(glm::radians(vfov), 800.0f / 600.0f, 0.1f, 100.0f);
+  simpleShader.setMat4("projection", projection);
 
-  int modelLoc = glGetUniformLocation(simpleShader.ID, "model");
-  int viewLoc = glGetUniformLocation(simpleShader.ID, "view");
-  int projectionLoc = glGetUniformLocation(simpleShader.ID, "projection");
-
+  glm::vec3 cubePositions[] = {
+      glm::vec3(0.0f, -1.0f, 0.0f),
+      glm::vec3(1.0f, -1.0f, 0.0f),
+      glm::vec3(2.0f, -1.0f, 0.0f),
+      glm::vec3(2.0f, 0.0f, 0.0f),
+  };
   // main render loop
   while (!glfwWindowShouldClose(window)) {
 
@@ -221,20 +225,19 @@ int main(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // use texture
-    glActiveTexture(GL_TEXTURE0);
-    texture.use();
+    texture.use(GL_TEXTURE0);
+
+    simpleShader.setMat4("view", view);
 
     // matrix transforms
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(45.0f),
-                        glm::vec3(1.0f, 0.5f, 0.0f));
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    // draw our triangles
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    for (unsigned int i = 0; i < std::size(cubePositions); i++) {
+      glm::mat4 model = glm::mat4(1.0f);
+      model = glm::translate(model, cubePositions[i]);
+
+      simpleShader.setMat4("model", model);
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     // poll and call events
     glfwPollEvents();

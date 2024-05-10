@@ -51,4 +51,7 @@ Texture::Texture(const std::string &path, unsigned int filter,
   stbi_image_free(data);
 }
 
-void Texture::use() { glBindTexture(GL_TEXTURE_2D, ID); }
+void Texture::use(unsigned int texture_id) {
+  glActiveTexture(texture_id);
+  glBindTexture(GL_TEXTURE_2D, ID);
+}

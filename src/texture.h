@@ -9,7 +9,7 @@ public:
   int width, height, nrChannels;
 
   Texture(const std::string &path, unsigned int filter, unsigned int wrap);
-  void use();
+  void use(unsigned int texture_id);
 };
 
 #endif
