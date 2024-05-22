@@ -5,21 +5,37 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#include "camera.h"
 #include "shader.h"
 #include "texture.h"
 
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
 
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+Camera camera((float)WINDOW_WIDTH / (float)WINDOW_HEIGHT);
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+  float sensitivity = 0.1f;
+  camera.readMouse(xpos, ypos, sensitivity);
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+  camera.changeFov(-(float)yoffset);
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
-  } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+
+  } else if (key == GLFW_KEY_X && action == GLFW_PRESS) {
     // toggle between fill and wireframe
     GLint polygonMode[2];
     glGetIntegerv(GL_POLYGON_MODE, polygonMode);
@@ -36,37 +52,73 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   }
 }
 
-int main(void) {
+void processInput(GLFWwindow *window) {
+  float speed = 3.0f;
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    camera.moveForward(speed * deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    camera.moveForward(-speed * deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    camera.moveSideways(-speed * deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    camera.moveSideways(speed * deltaTime);
+  }
+}
+
+GLFWwindow *initOpenGL() {
   glfwInit();
 
+  // set version hints
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  // don't allow resizing
   // This forces the window to be floating when using tiling wm
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
+  // create window
   GLFWwindow *window =
       glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "opengl", NULL, NULL);
-  if (!window) {
+
+  if (window) {
+    glfwMakeContextCurrent(window);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+  } else {
     std::cerr << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
-    return -1;
   }
-  glfwMakeContextCurrent(window);
+
+  // init GLEW bindings
+  GLenum status = glewInit();
+  if (status != GLEW_OK) {
+    std::cerr << "Error: " << glewGetErrorString(status) << std::endl;
+  }
 
   std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
   std::cout << "Using OpenGl " << glGetString(GL_VERSION) << std::endl;
 
-  glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+  // set callbacks
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetScrollCallback(window, scroll_callback);
   glfwSetKeyCallback(window, key_callback);
 
-  GLenum err = glewInit();
-  if (GLEW_OK != err) {
-    std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
-  }
-  std::cout << "Initialized GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+  // capture the cursor
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+
+  return window;
+}
+
+int main(void) {
+  GLFWwindow *window = initOpenGL();
 
   float x = 0.5f;
   float y = 0.5f;
@@ -109,7 +161,6 @@ int main(void) {
       x,  y,  z,  // f
       -x, y,  -z, // f
       -x, y,  z,  // f
-
   };
 
   float blockSize = 16.0f;
@@ -196,41 +247,39 @@ int main(void) {
   Shader simpleShader("shaders/shader.vert.glsl", "shaders/shader.frag.glsl");
   Texture texture("assets/terrain.png", GL_NEAREST, GL_REPEAT);
 
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-
-  simpleShader.use();
-
-  glm::mat4 view = glm::mat4(1.0f);
-  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -6.0f));
-
-  float vfov = 60.0f;
-  glm::mat4 projection;
-  projection =
-      glm::perspective(glm::radians(vfov), 800.0f / 600.0f, 0.1f, 100.0f);
-  simpleShader.setMat4("projection", projection);
-
   glm::vec3 cubePositions[] = {
       glm::vec3(0.0f, -1.0f, 0.0f),
       glm::vec3(1.0f, -1.0f, 0.0f),
       glm::vec3(2.0f, -1.0f, 0.0f),
       glm::vec3(2.0f, 0.0f, 0.0f),
   };
+
   // main render loop
   while (!glfwWindowShouldClose(window)) {
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+
+    // std::cout << "FPS: " << (int)(1.0f / deltaTime + 0.5f) << std::endl;
+
+    processInput(window);
 
     // clear buffers
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // use shader
+    simpleShader.use();
+
     // use texture
     texture.use(GL_TEXTURE0);
 
-    simpleShader.setMat4("view", view);
+    camera.render();
+    simpleShader.setMat4("projection", camera.projection());
+    simpleShader.setMat4("view", camera.view());
 
-    // matrix transforms
     glBindVertexArray(VAO);
+
     for (unsigned int i = 0; i < std::size(cubePositions); i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
