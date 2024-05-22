@@ -18,6 +18,7 @@ float lastFrame = 0.0f;
 Camera camera((float)WINDOW_WIDTH / (float)WINDOW_HEIGHT);
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  // resize viewport too if the window is resized
   glViewport(0, 0, width, height);
 }
 
@@ -117,9 +118,7 @@ GLFWwindow *initOpenGL() {
   return window;
 }
 
-int main(void) {
-  GLFWwindow *window = initOpenGL();
-
+unsigned int createCube() {
   float x = 0.5f;
   float y = 0.5f;
   float z = 0.5f;
@@ -232,20 +231,30 @@ int main(void) {
   unsigned int VBO, TXVBO;
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &TXVBO);
+
+  // read vertex coordinates into buffer 0
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  // tell opengl how to interpret our vertex buffer
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
+  // read texture coordinates into buffer 1
   glBindBuffer(GL_ARRAY_BUFFER, TXVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(texcoord), texcoord, GL_STATIC_DRAW);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(1);
 
+  // return our VAO for rendering
+  return VAO;
+}
+
+int main(void) {
+  GLFWwindow *window = initOpenGL();
+
   Shader simpleShader("shaders/shader.vert.glsl", "shaders/shader.frag.glsl");
   Texture texture("assets/terrain.png", GL_NEAREST, GL_REPEAT);
+
+  unsigned int cubeVAO = createCube();
 
   glm::vec3 cubePositions[] = {
       glm::vec3(0.0f, -1.0f, 0.0f),
@@ -256,13 +265,16 @@ int main(void) {
 
   // main render loop
   while (!glfwWindowShouldClose(window)) {
+
+    // frame timing
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-
     // std::cout << "FPS: " << (int)(1.0f / deltaTime + 0.5f) << std::endl;
 
+    // get input and process callbacks
     processInput(window);
+    glfwPollEvents();
 
     // clear buffers
     glClear(GL_COLOR_BUFFER_BIT);
@@ -274,24 +286,23 @@ int main(void) {
     // use texture
     texture.use(GL_TEXTURE0);
 
+    // move camera and update shader matrices
     camera.render();
     simpleShader.setMat4("projection", camera.projection());
     simpleShader.setMat4("view", camera.view());
 
-    glBindVertexArray(VAO);
+    // render some cubes
+    glBindVertexArray(cubeVAO);
 
     for (unsigned int i = 0; i < std::size(cubePositions); i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
-
       simpleShader.setMat4("model", model);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    // poll and call events
-    glfwPollEvents();
-
     // swap front and back buffer
+    // aka, show the new frame
     glfwSwapBuffers(window);
   }
 
