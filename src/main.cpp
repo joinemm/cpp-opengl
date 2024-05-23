@@ -14,6 +14,7 @@ const unsigned int WINDOW_HEIGHT = 600;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+bool freecam = false;
 
 Camera camera((float)WINDOW_WIDTH / (float)WINDOW_HEIGHT);
 
@@ -23,8 +24,22 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-  float sensitivity = 0.1f;
-  camera.readMouse(xpos, ypos, sensitivity);
+  if (freecam &&
+      glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+    float sensitivity = 0.1f;
+    camera.readMouse(xpos, ypos, sensitivity);
+  }
+}
+
+void mouse_button_callback(GLFWwindow *window, int button, int action,
+                           int mods) {
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) {
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+      std::cout << "pew!" << std::endl;
+    }
+  }
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
@@ -50,6 +65,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
     };
 
     glPolygonMode(GL_FRONT_AND_BACK, newMode);
+
+  } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+    freecam = !freecam;
+
+  } else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    camera.firstMouse = true;
   }
 }
 
@@ -113,9 +135,12 @@ GLFWwindow *initOpenGL() {
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
   glfwSetKeyCallback(window, key_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
 
   // capture the cursor
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // raw input
+  glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glEnable(GL_CULL_FACE);
@@ -168,17 +193,19 @@ unsigned int createCube() {
       -x, y,  z,  // f
   };
 
-  float blockSize = 16.0f;
-  float atlasSize = 256.0f;
+  // float blockSize = 16.0f;
+  // float atlasSize = 256.0f;
+  float blockSize = 1.0f;
+  float atlasSize = 1.0f;
   float bw = blockSize / atlasSize;
 
   float ba[] = {
-      12 * bw, 12 * bw, // a
-      11 * bw, 12 * bw, // b
-      11 * bw, 12 * bw, // c
-      12 * bw, 12 * bw, // d
-      4 * bw,  15 * bw, // e = bottom
-      11 * bw, 13 * bw, // f = top
+      1 * bw, 1 * bw, // a
+      1 * bw, 1 * bw, // b
+      1 * bw, 1 * bw, // c
+      1 * bw, 1 * bw, // d
+      1 * bw, 1 * bw, // e = bottom
+      1 * bw, 1 * bw, // f = top
   };
 
   float texcoord[]{
@@ -258,16 +285,18 @@ int main(void) {
   GLFWwindow *window = initOpenGL();
 
   Shader simpleShader("shaders/shader.vert.glsl", "shaders/shader.frag.glsl");
-  Texture texture("assets/terrain.png", GL_NEAREST, GL_REPEAT);
+  Texture texture("assets/silo2_p2.png", GL_NEAREST, GL_REPEAT);
 
   unsigned int cubeVAO = createCube();
 
   glm::vec3 cubePositions[] = {
-      glm::vec3(0.0f, -1.0f, 0.0f),
-      glm::vec3(1.0f, -1.0f, 0.0f),
-      glm::vec3(2.0f, -1.0f, 0.0f),
-      glm::vec3(2.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      // glm::vec3(1.0f, -1.0f, 0.0f),
+      // glm::vec3(2.0f, -1.0f, 0.0f),
+      // glm::vec3(2.0f, 0.0f, 0.0f),
   };
+
+  camera.setPosition(glm::vec3(-3.0f, 0.0f, 0.0f));
 
   // main render loop
   while (!glfwWindowShouldClose(window)) {
@@ -292,10 +321,15 @@ int main(void) {
     // use texture
     texture.use(GL_TEXTURE0);
 
-    // move camera and update shader matrices
-    camera.render();
+    // update camera projections
+    glm::mat4 view;
+    if (freecam) {
+      view = camera.eulerView();
+    } else {
+      view = camera.lookAtView(glm::vec3(0.0f, 0.0f, 0.0f));
+    }
     simpleShader.setMat4("projection", camera.projection());
-    simpleShader.setMat4("view", camera.view());
+    simpleShader.setMat4("view", view);
 
     // render some cubes
     glBindVertexArray(cubeVAO);

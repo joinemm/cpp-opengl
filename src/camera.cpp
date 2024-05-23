@@ -5,14 +5,6 @@
 
 Camera::Camera(float aspectRatio) { Camera::aspectRatio = aspectRatio; }
 
-void Camera::render() {
-  glm::vec3 direction;
-  direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  direction.y = sin(glm::radians(pitch));
-  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front = glm::normalize(direction);
-}
-
 void Camera::moveForward(float amount) { pos += front * amount; }
 
 void Camera::moveSideways(float amount) {
@@ -20,6 +12,8 @@ void Camera::moveSideways(float amount) {
 }
 
 void Camera::moveUp(float amount) { pos += up * amount; }
+
+void Camera::setPosition(glm::vec3 newPos) { pos = newPos; }
 
 void Camera::readMouse(double xpos, double ypos, float lookSensitivity) {
   if (firstMouse) {
@@ -54,13 +48,22 @@ void Camera::changeFov(float amount) {
 }
 
 glm::mat4 Camera::projection() {
-  glm::mat4 projection;
-  projection = glm::perspective(glm::radians(vFov), aspectRatio, 0.1f, 100.0f);
-  return projection;
+  return glm::perspective(glm::radians(vFov), aspectRatio, 0.1f, 100.0f);
 }
 
-glm::mat4 Camera::view() {
-  glm::mat4 view;
-  view = glm::lookAt(pos, pos + front, up);
+glm::mat4 Camera::lookAtView(glm::vec3 target) {
+  glm::mat4 view = glm::lookAt(pos, target, up);
+  front = glm::normalize(target - pos);
+  pitch = glm::degrees(asin(front.y));
+  yaw = glm::degrees(-atan2(front.x, front.z)) + 90.0f;
   return view;
+}
+
+glm::mat4 Camera::eulerView() {
+  glm::vec3 direction;
+  direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+  direction.y = sin(glm::radians(pitch));
+  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  front = glm::normalize(direction);
+  return glm::lookAt(pos, pos + front, up);
 }
