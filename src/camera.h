@@ -21,6 +21,7 @@ public:
 
   void moveForward(float amount);
   void moveSideways(float amount);
+  void moveUp(float amount);
   void changeFov(float amount);
   void readMouse(double xpos, double ypos, float lookSensitivity);
   void render();

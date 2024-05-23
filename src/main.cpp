@@ -67,6 +67,12 @@ void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
     camera.moveSideways(speed * deltaTime);
   }
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    camera.moveUp(speed * deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+    camera.moveUp(-speed * deltaTime);
+  }
 }
 
 GLFWwindow *initOpenGL() {

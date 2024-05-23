@@ -19,6 +19,8 @@ void Camera::moveSideways(float amount) {
   pos += glm::normalize(glm::cross(front, up)) * amount;
 }
 
+void Camera::moveUp(float amount) { pos += up * amount; }
+
 void Camera::readMouse(double xpos, double ypos, float lookSensitivity) {
   if (firstMouse) {
     lastX = xpos;
