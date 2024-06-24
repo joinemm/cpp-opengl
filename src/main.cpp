@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <vector>
 
 #include "camera.h"
 #include "shader.h"
@@ -55,7 +56,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
     // toggle between fill and wireframe
     GLint polygonMode[2];
     glGetIntegerv(GL_POLYGON_MODE, polygonMode);
-    GLint newMode;
+    GLenum newMode;
     if (polygonMode[0] == GL_LINE) {
       newMode = GL_FILL;
       glEnable(GL_CULL_FACE);
@@ -149,12 +150,8 @@ GLFWwindow *initOpenGL() {
   return window;
 }
 
-unsigned int createCube() {
-  float x = 0.5f;
-  float y = 0.5f;
-  float z = 0.5f;
-
-  float vertices[] = {
+std::vector<float> cubeVertices(float x, float y, float z) {
+  std::vector<float> cubeVertices{
       -x, -y, -z, // a
       -x, -y, z,  // a
       -x, y,  z,  // a
@@ -192,7 +189,10 @@ unsigned int createCube() {
       -x, y,  -z, // f
       -x, y,  z,  // f
   };
+  return cubeVertices;
+};
 
+unsigned int createCube() {
   // float blockSize = 16.0f;
   // float atlasSize = 256.0f;
   float blockSize = 1.0f;
@@ -245,6 +245,45 @@ unsigned int createCube() {
       ba[10] + bw, ba[11],      // f
       ba[10],      ba[11] + bw, // f
       ba[10],      ba[11],      // f
+  };
+
+  float normals[]{
+      -1.0f, 0.0f,  0.0f,  //
+      -1.0f, 0.0f,  0.0f,  //
+      -1.0f, 0.0f,  0.0f,  //
+      -1.0f, 0.0f,  0.0f,  //
+      -1.0f, 0.0f,  0.0f,  //
+      -1.0f, 0.0f,  0.0f,  //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  -1.0f, //
+      0.0f,  0.0f,  1.0f,  //
+      0.0f,  0.0f,  1.0f,  //
+      0.0f,  0.0f,  1.0f,  //
+      0.0f,  0.0f,  1.0f,  //
+      0.0f,  0.0f,  1.0f,  //
+      0.0f,  0.0f,  1.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      1.0f,  0.0f,  0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  -1.0f, 0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
+      0.0f,  1.0f,  0.0f,  //
 
   };
 
@@ -261,13 +300,17 @@ unsigned int createCube() {
   //              GL_STATIC_DRAW);
 
   // create vertex buffer object
-  unsigned int VBO, TXVBO;
+  unsigned int VBO, TXVBO, NVBO;
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &TXVBO);
+  glGenBuffers(1, &NVBO);
+
+  std::vector<float> vertices = cubeVertices(0.5f, 0.5f, 0.5f);
 
   // read vertex coordinates into buffer 0
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(sizeof(float) * vertices.size()),
+               &vertices[0], GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
@@ -277,6 +320,36 @@ unsigned int createCube() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(1);
 
+  // read normals into buffer 2
+  glBindBuffer(GL_ARRAY_BUFFER, NVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(2);
+
+  // return our VAO for rendering
+  return VAO;
+}
+
+unsigned int createLightsource() {
+  // create vertex array object
+  unsigned int VAO;
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+
+  // create vertex buffer object
+  unsigned int VBO;
+  glGenBuffers(1, &VBO);
+
+  std::vector<float> vertices = cubeVertices(0.2f, 0.2f, 0.2f);
+
+  // read vertex coordinates into buffer 0
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(sizeof(float) * vertices.size()),
+               &vertices[0], GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                        static_cast<void *>(0));
+  glEnableVertexAttribArray(0);
+
   // return our VAO for rendering
   return VAO;
 }
@@ -284,20 +357,30 @@ unsigned int createCube() {
 int main(void) {
   GLFWwindow *window = initOpenGL();
 
-  Shader simpleShader("shaders/shader.vert.glsl", "shaders/shader.frag.glsl");
+  Shader simpleShader("shaders/standard.vert.glsl", "shaders/phong.frag.glsl");
+  Shader lampShader("shaders/standard.vert.glsl", "shaders/lamp.frag.glsl");
   Texture texture("assets/silo2_p2.png", GL_NEAREST, GL_REPEAT);
 
   unsigned int cubeVAO = createCube();
+  unsigned int lightVAO = createLightsource();
 
-  glm::vec3 cubePositions[] = {
+  std::vector cubePositions = {
       glm::vec3(0.0f, 0.0f, 0.0f),
-      // glm::vec3(1.0f, -1.0f, 0.0f),
-      // glm::vec3(2.0f, -1.0f, 0.0f),
-      // glm::vec3(2.0f, 0.0f, 0.0f),
+      glm::vec3(1.3f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 1.3f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 1.3f),
   };
 
-  camera.setPosition(glm::vec3(-3.0f, 0.0f, 0.0f));
+  std::vector cubeColors = {
+      glm::vec3(1.0f, 1.0f, 1.0f),
+      glm::vec3(1.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 1.0f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 1.0f),
+  };
 
+  camera.setPosition(glm::vec3(4.0f, 4.0f, 4.0f));
+
+  glm::vec3 lightPos = glm::vec3(-0.2f, 3.0f, 3.0f);
   // main render loop
   while (!glfwWindowShouldClose(window)) {
 
@@ -315,12 +398,6 @@ int main(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // use shader
-    simpleShader.use();
-
-    // use texture
-    texture.use(GL_TEXTURE0);
-
     // update camera projections
     glm::mat4 view;
     if (freecam) {
@@ -328,16 +405,38 @@ int main(void) {
     } else {
       view = camera.lookAtView(glm::vec3(0.0f, 0.0f, 0.0f));
     }
+
+    float radius = 3.0f;
+    float x = sin(glfwGetTime()) * radius;
+    float z = cos(glfwGetTime()) * radius;
+    lightPos = glm::vec3(x, 3.0f, z);
+    // render light source
+    lampShader.use();
+    lampShader.setMat4("projection", camera.projection());
+    lampShader.setMat4("view", view);
+    glm::mat4 lightModel = glm::mat4(1.0f);
+    lightModel = glm::translate(lightModel, lightPos);
+    lampShader.setMat4("model", lightModel);
+    glBindVertexArray(lightVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // render some cubes
+    simpleShader.use();
+    texture.use(GL_TEXTURE0);
+
     simpleShader.setMat4("projection", camera.projection());
     simpleShader.setMat4("view", view);
 
-    // render some cubes
+    simpleShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    simpleShader.setVec3("lightPos", lightPos);
+    simpleShader.setVec3("viewPos", camera.pos);
     glBindVertexArray(cubeVAO);
 
     for (unsigned int i = 0; i < std::size(cubePositions); i++) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       simpleShader.setMat4("model", model);
+      simpleShader.setVec3("objectColor", cubeColors[i]);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
