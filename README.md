@@ -1,4 +1,4 @@
-![screenshot](/screenshots/2024-06.24.png)
+![screenshot](/screenshots/2024-06-24.png)
 
 ## Dependencies
 
