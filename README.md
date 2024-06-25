@@ -7,15 +7,22 @@
 - [stb](https://github.com/nothings/stb)
 - [GLM](https://github.com/g-truc/glm)
 
-A nix development shell is included which installs the required libraries into the environment.
+A nix development shell is included which comes installed with the required libraries:
 
 ```sh
-nix develop --impure -c $SHELL
+nix develop
 ```
 
-If not using nix, find the corresponding packages for your distro and install them on your system.
+If not using nix, you can install the dependencies system wide.
+These are the packages for Ubuntu:
 
-## Compile and run
+```sh
+sudo apt install libglfw3-dev libglew-dev libstb-dev libglm-dev
+```
+
+For other distros, you'll have to find the matching packages and install them on your system.
+
+## Building
 
 With the dependencies installed and accessible to the compiler,
 the included Makefile can be used for compiling and running the program.
@@ -27,6 +34,8 @@ make
 # compile and run
 make run
 
-# clean up any compiled files
+# remove all generated build files
 make clean
 ```
+
+The compiled binary can be found at `./bin/out`
