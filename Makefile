@@ -3,12 +3,12 @@ CFLAGS = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 		 -Wmissing-include-dirs -Wnoexcept \
 		 -Woverloaded-virtual -Wredundant-decls -Wshadow \
 		 -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel \
-		 -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wno-unused 
+		 -Wswitch-default -Wundef -Werror -Wno-unused 
 
 # these are annoying
 # -Wmissing-declarations -Wold-style-cast
 
-LDFLAGS = -lGL -lglfw -lGLEW
+LDFLAGS = -lGLEW -lGL -lGLU -lglfw
 
 TARGET = bin/out
 SOURCES = $(wildcard src/*.cpp)
@@ -30,7 +30,7 @@ bin:
 	mkdir -p $@
 
 $(TARGET): $(OBJS) | bin
-	g++ $(CFLAGS) $(LDFLAGS) $^ -o $(TARGET)
+	g++ $^ -o $(TARGET) $(LDFLAGS)
 
 build/%.o: src/%.cpp | build
 	g++ $(CFLAGS) -MMD -MP -c $< -o $@

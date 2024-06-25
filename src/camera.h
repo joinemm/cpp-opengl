@@ -20,7 +20,7 @@ public:
 
   float aspectRatio;
 
-  Camera(float aspectRatio);
+  Camera(float aspect);
 
   void moveForward(float amount);
   void moveSideways(float amount);

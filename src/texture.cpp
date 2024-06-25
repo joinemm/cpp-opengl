@@ -7,8 +7,7 @@
 
 #include "texture.h"
 
-Texture::Texture(const std::string &path, unsigned int filter,
-                 unsigned int wrap) {
+Texture::Texture(const std::string &path, GLint filter, GLint wrap) {
   // create a texture object
   glGenTextures(1, &ID);
   glBindTexture(GL_TEXTURE_2D, ID);
@@ -40,7 +39,7 @@ Texture::Texture(const std::string &path, unsigned int filter,
                 << " channels which is unhandled case!" << std::endl;
     }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, (GLint)format, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {

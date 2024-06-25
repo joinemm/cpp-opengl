@@ -3,7 +3,7 @@
 
 #include "camera.h"
 
-Camera::Camera(float aspectRatio) { Camera::aspectRatio = aspectRatio; }
+Camera::Camera(float aspect) { Camera::aspectRatio = aspect; }
 
 void Camera::moveForward(float amount) { pos += front * amount; }
 

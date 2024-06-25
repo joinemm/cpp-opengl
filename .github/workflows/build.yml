@@ -18,8 +18,8 @@ jobs:
     
     - name: install dependencies
       run: |
-        sudo apt-get update -y
-        sudo apt-get install -y libglfw3 libglew-dev libstb-dev libglm-dev
+        sudo apt update -y
+        sudo apt install -y libglfw3-dev libglew-dev libstb-dev libglm-dev
         
     - name: make
       run: make
