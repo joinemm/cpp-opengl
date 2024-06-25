@@ -1,12 +1,4 @@
-CFLAGS = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
-		 -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op \
-		 -Wmissing-include-dirs -Wnoexcept \
-		 -Woverloaded-virtual -Wredundant-decls -Wshadow \
-		 -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel \
-		 -Wswitch-default -Wundef -Werror -Wno-unused 
-
-# these are annoying
-# -Wmissing-declarations -Wold-style-cast
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow -Wconversion -Wno-float-conversion -Wno-unused-parameter -O2
 
 LDFLAGS = -lGLEW -lGL -lGLU -lglfw
 

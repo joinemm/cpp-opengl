@@ -22,10 +22,8 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
   int success;
   glGetShaderiv(ID, GL_LINK_STATUS, &success);
   if (!success) {
-    GLint maxLength;
-    glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &maxLength);
-    GLchar infoLog(maxLength);
-    glGetProgramInfoLog(ID, maxLength, &maxLength, &infoLog);
+    GLchar infoLog[1024];
+    glGetProgramInfoLog(ID, 1024, NULL, infoLog);
     std::cerr << "ERROR: SHADER LINKING FAILED\n" << infoLog << std::endl;
   }
 
