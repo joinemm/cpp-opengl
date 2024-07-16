@@ -20,9 +20,9 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
 
   // check for linking errors
   int success;
-  glGetShaderiv(ID, GL_LINK_STATUS, &success);
+  glGetProgramiv(ID, GL_LINK_STATUS, &success);
   if (!success) {
-    GLchar infoLog[1024];
+    char infoLog[1024];
     glGetProgramInfoLog(ID, 1024, NULL, infoLog);
     std::cerr << "ERROR: SHADER LINKING FAILED\n" << infoLog << std::endl;
   }

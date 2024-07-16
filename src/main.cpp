@@ -354,15 +354,36 @@ unsigned int createLightsource() {
   return VAO;
 }
 
+struct Material {
+  glm::vec3 ambient;
+  glm::vec3 diffuse;
+  glm::vec3 specular;
+  float shininess;
+};
+
 int main(void) {
   GLFWwindow *window = initOpenGL();
 
   Shader simpleShader("shaders/standard.vert.glsl", "shaders/phong.frag.glsl");
   Shader lampShader("shaders/standard.vert.glsl", "shaders/lamp.frag.glsl");
-  Texture texture("assets/silo2_p2.png", GL_NEAREST, GL_REPEAT);
+  Texture texture("assets/container2.png", GL_NEAREST, GL_REPEAT);
 
   unsigned int cubeVAO = createCube();
   unsigned int lightVAO = createLightsource();
+
+  Material gold = {
+      glm::vec3(0.24725f, 0.1995f, 0.0745f),
+      glm::vec3(0.75164f, 0.60648f, 0.22648f),
+      glm::vec3(0.628281f, 0.555802f, 0.366065f),
+      0.4f,
+  };
+
+  Material crate = {
+      glm::vec3(0.1f, 0.1f, 0.2f),
+      glm::vec3(1.0f),
+      glm::vec3(1.0f),
+      0.2f,
+  };
 
   std::vector cubePositions = {
       glm::vec3(0.0f, 0.0f, 0.0f),
@@ -371,11 +392,11 @@ int main(void) {
       glm::vec3(0.0f, 0.0f, 1.3f),
   };
 
-  std::vector cubeColors = {
-      glm::vec3(1.0f, 1.0f, 1.0f),
-      glm::vec3(1.0f, 0.0f, 0.0f),
-      glm::vec3(0.0f, 1.0f, 0.0f),
-      glm::vec3(0.0f, 0.0f, 1.0f),
+  std::vector cubeMaterials = {
+      gold,
+      crate,
+      crate,
+      crate,
   };
 
   camera.setPosition(glm::vec3(4.0f, 4.0f, 4.0f));
@@ -427,8 +448,10 @@ int main(void) {
     simpleShader.setMat4("projection", camera.projection());
     simpleShader.setMat4("view", view);
 
-    simpleShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    simpleShader.setVec3("lightPos", lightPos);
+    simpleShader.setVec3("light.ambient", glm::vec3(1.0f));
+    simpleShader.setVec3("light.brightness", glm::vec3(1.0f));
+    simpleShader.setVec3("light.position", lightPos);
+
     simpleShader.setVec3("viewPos", camera.pos);
     glBindVertexArray(cubeVAO);
 
@@ -436,7 +459,10 @@ int main(void) {
       glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       simpleShader.setMat4("model", model);
-      simpleShader.setVec3("objectColor", cubeColors[i]);
+      simpleShader.setVec3("material.ambient", cubeMaterials[i].ambient);
+      simpleShader.setVec3("material.diffuse", cubeMaterials[i].diffuse);
+      simpleShader.setVec3("material.specular", cubeMaterials[i].specular);
+      simpleShader.setFloat("material.shininess", cubeMaterials[i].shininess);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
