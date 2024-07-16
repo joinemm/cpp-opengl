@@ -15,6 +15,7 @@
       system: let
         name = "cpp-opengl";
         pkgs = nixpkgs.legacyPackages.${system};
+        nativeBuildInputs = with pkgs; [gcc];
         buildInputs = with pkgs; [
           glfw
           glew
@@ -26,11 +27,11 @@
           default = pkgs.stdenv.mkDerivation {
             src = ./.;
             makeFlags = ["PREFIX=$(out)"];
-            inherit name buildInputs;
+            inherit name buildInputs nativeBuildInputs;
           };
         };
         devShells.default = pkgs.mkShell {
-          inherit name buildInputs;
+          inherit name buildInputs nativeBuildInputs;
         };
       }
     );
