@@ -1,5 +1,24 @@
 ![screenshot](/screenshots/2024-06-24.png)
 
+# Install
+
+This game can be installed by using make:
+
+```sh
+make install
+```
+
+Make will put the game files in `/usr/local/cpp-opengl` by default, and create a wrapper script to load shaders and textures.
+This can be changed with the `PREFIX` environment variable.
+
+Nix can also be used to run the project straight from the repo:
+
+```sh
+nix run github:joinemm/cpp-opengl
+```
+
+# Develop
+
 ## Dependencies
 
 - [GLFW](https://github.com/glfw/glfw)
@@ -38,4 +57,11 @@ make run
 make clean
 ```
 
-The compiled binary can be found at `./bin/out`
+The compiled binary can be found at `./game`
+
+Nix can also be used to for building:
+
+```sh
+nix build
+cd result
+```
